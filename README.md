@@ -1,4 +1,5 @@
-### CI/CD deployment of a Flask application in AWS using RDS PostgreSQL as the database
+# Flask CI/CD on Elastic Beanstalk
+This is a CI/CD deployment of a Flask application in AWS using RDS PostgreSQL as the database
 
 ## Technologies
 Python 3.8, Flask, AWS RDS - PostgreSQL, GitHub, GitHub Actions, AWS Code Pipeline, AWS
@@ -85,10 +86,10 @@ the groups might all create correctly if you have no need to have them static (n
 
 I chose PostgreSQL just because it is a nice option. 
 
-# Configuration Considerations
+## Configuration Considerations
 The configs will cleanly allow you to change between local, dev, test, and prod environments.
 
-Most configs are included in the .env file. I've included a template that you would just need to fill out and rename.
+Most configs are included in the .env file. I've included a env_template that you would just need to fill out and rename to .env.
 - You always need an APP_SECRET for Flask encryption.
 - You always need FLASK_APP set to application for Flask-Migrate to correctly find the app.
 - If you want to develop locally, you would need PostgreSQL installed, set LOCAL_DEVELOPMENT=True and include LOCAL_USER
@@ -113,7 +114,9 @@ If you were going to use this in production, you would probably want to change s
 ## How To Run Locally
 
 1. Clone, or fork and clone this repo.
-   git clone https://github.com/Karana316/flask-aws-tutorial
+```commandline
+git clone https://github.com/Karana316/flask-aws-tutorial
+```
 
 2. Configure your environment (commands run from flask_aws_tutorial folder)
    - I suggest using pipenv. You could use venv and install the requirements.txt just the same.
@@ -180,18 +183,50 @@ see the app and environment in Elastic Beanstalk and the db in RDS. From the env
 find the endpoint and/or Open the application from the left menu.
 
 ## How To Run on AWS via CodePipeline
+For this I used the Console.
+
+### Create the application and environment in Elastic Beanstalk
+1. In AWS Console, go to Elastic Beanstalk and click Create Application. Name it flask-aws and choose Python as the
+platform. It currently defaults to what we want, which is Python 3.8 running on 64bit Amazon Linux 2.
+2. Choose to leave the app as the sample application and click Create Application.
+3. This has created both an application and an environment.
+
+The problem with the pipeline below is that there is no place to set the environment during deployment. The database
+will not be created without the environment variables it requires. Therefore, we need to set them manually.
+
+1. Go to the Flaskaws-env and choose Configuration on the left. Then Edit on the right of the Software row.
+2. Scroll down and add all environment variables, then Apply.
+
+### Create the Code Pipeline
+1. In AWS Console, go to CodePipeline and click Create Pipeline.
+2. Name the pipeline and let it create a new service role. Don't worry about Advanced Settings. Click Next.
+3. On the next page, choose GitHub (Version 2) as the Source provider. If you don't have a connection set up, you will 
+click Connect to GitHub, login, and allow the app access to the repo.
+4. Choose flask-aws-tutorial as the repository and master-aws as the branch. I created a copy of my master branch so 
+that GitHub Actions would stay separate during testing.
+5. Leave the box checked that says "Start the pipeline on source code change". We want this to happen. And then choose
+CodePipeline default for the output artifact format. Click Next.
+6. Skip the build stage.
+7. For Deploy, choose AWS Elastic Beanstalk. Choose the Application name and Environment name you created in Elastic Beanstalk. Click Next.
+8. Review and create pipeline.
+
+Now 
+...
+
+In Elastic Beanstalk, go to the flask-aws-env environment and choose config on the le
+
 
 ## Continued Development
 
 ### Code Changes
-Just commit to your repo. Ideally this is on a dev branch, and you pull-request into the master/main.
+Just commit to your repo. Ideally this is on a dev branch, and pull-request into the master/main.
 
 ### Database Changes
 As you make changes that affect the database, you will need to create new migrations. 
 ```commandline
 $ flask db migrate -m "another migration." 
 ```
-Review the script it creats within the migrations > versions folder. You add/commit these to the repo, and the pipeline 
+Review the script it creats within the migrations > versions folder. Add/commit new migrations to the repo, and the pipeline 
 will migrate the changes. [Documentation](https://flask-migrate.readthedocs.io/en/latest/index.html) for Flask-Migrate.
 
 ### Package Changes
@@ -206,8 +241,8 @@ $ pipenv lock -r > requirements.txt
 ## Future Improvements
 There are two additional steps that would be necessary for a production application.
 
-### The build step with testing+
-I left this setup in GitHub actions, but the testing piece is commented out, so it isn't doing much
+### The build step with testing
+I left this step in GitHub actions, but the testing piece is commented out, so it isn't doing much
 other than testing the installation. Generally you would run unit tests in this step, but that is difficult to do with my current
 setup. You don't want to test with the real database, so you would probably want to write tests against a local (to the
 test runner) postgreSQL install or an in-memory SQLite db. This was just out of scope for this project.
@@ -217,7 +252,7 @@ I chose to use a username and password for my database creation. This might be b
 Since I have github actions create the database first if it doesn't exist, I had to leave port 5432 open on the database
 role. Maybe if you switched to IAM security you could create a more specific policy/role. In any case, the security needs
 to be tightened down. Of course if you have an enterprise GitHub account, you probably have a custom runner that you can
-more easily know the IP of (to add to the security group.
+more easily know the IP of (to add to the security group).
 
 ## Sources
 I started this project by forking [this repo](https://github.com/inkjet/flask-aws-tutorial), but ended up making 
