@@ -3,7 +3,7 @@
 ## Technologies
 Python 3.8, Flask, AWS RDS - PostgreSQL, GitHub, GitHub Actions, AWS Code Pipeline, AWS
 Elastic Beanstalk
-
+ 
 ## Demo Videos
 
 ## Objective
