@@ -204,23 +204,35 @@ will not be created without the environment variables it requires. Therefore, we
 click Connect to GitHub, login, and allow the app access to the repo.
 4. Choose flask-aws-tutorial as the repository and master-aws as the branch. I created a copy of my master branch so 
 that GitHub Actions would stay separate during testing.
-5. Leave the box checked that says "Start the pipeline on source code change". We want this to happen. And then choose
+5. Leave the box checked that says "Start the pipeline on source code change". We want this to happen. And then choose the
 CodePipeline default for the output artifact format. Click Next.
 6. Skip the build stage.
 7. For Deploy, choose AWS Elastic Beanstalk. Choose the Application name and Environment name you created in Elastic Beanstalk. Click Next.
 8. Review and create pipeline.
 
-Note that you can start the pipeline by clicking Release Change from the Pipelines or flask-aws pipline screens. 
+Note that you can start the pipeline by clicking Release Change from the Pipelines or flask-aws pipeline screens. 
 
 ### File Differences on master-aws branch 
  - There is no environment.config. This is because this file would overwrite the variables we
 just set up manually with the placeholders. Since this step is fully manual, we don't need it.
  - There is an additional .platform/hooks/postdeploy/db_init.sh file. This hook will run once the application finishes
-deploying. It will run the first time and create the database, but it will contain no tables. This hook will run the
+deploying. When the application first deploys, it will create the database, but it will contain no tables. This hook will run the
 ```flask db upgrade``` step after the app is deployed. I left it as a platform post deploy hook (which requires an
-app restart after it runs), rather than a config post deploy hook (which would require no restart) to be sure of the timing.
-Elastic Beanstalk likes to say the app is ready and deployed while Python is still creating the database.
+app restart after it runs), rather than a config post deploy hook (which would require no restart) to be sure of the timing,
+and because it wasn't running correctly as a confighook. Ideally in the end it would run without having to restart the app.
 
+## GitHubActions or AWS CodePipeline?
+I have a feeling it would be possible to better automate the environment setup within CodePipeline. I'm not sure where
+you would store you env file, maybe S3? Or maybe you could just automate creating it in the environment from a local copy.
+I am sure you could automate creating the environment too, either from local, or during the build step somehow. I didn't
+try CodeBuild, so I'm not sure how customizable it is. All this to say, if you don't know and use GitHub and you are already
+in the AWS world, CodePipeline might be a good option for you.
+
+However, in general I feel like GitHub Actions wins this comparison by a landslide. You have all the options you have 
+within CodePipeline plus more. It is more customizable, and the config nicely lives in your repo. Plus, you can centralize
+your environments. 
+
+In addition, GitHub Actions has great error logs for debugging. The CodePipeline UI felt clunky after the ease of GitHub Actions.
 
 ## Continued Development
 
