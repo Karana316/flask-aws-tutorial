@@ -6,10 +6,11 @@ Python 3.8, Flask, AWS RDS - PostgreSQL, GitHub, GitHub Actions, AWS Code Pipeli
 Elastic Beanstalk
 
 ### Demo Videos
-[Overview](https://youtu.be/V5JP0YYWUAg)
-<a href="https://youtu.be/V5JP0YYWUAg" title="Link Title"><img src="https://img.youtube.com/vi/V5JP0YYWUAg/0.jpg" alt="Alternate Text" /></a>
-[Full Demo](https://youtu.be/zfnVXyM21LI)
-<a href="https://youtu.be/V5JP0YYWUAg" title="Link Title"><img src="https://img.youtube.com/vi/zfnVXyM21LI/0.jpg" alt="Alternate Text" /></a>
+[Overview](https://youtu.be/V5JP0YYWUAg)  
+<a href="https://youtu.be/V5JP0YYWUAg" title="Link Title"><img src="https://img.youtube.com/vi/V5JP0YYWUAg/0.jpg"/></a>
+
+[Full Demo](https://youtu.be/zfnVXyM21LI)  
+<a href="https://youtu.be/V5JP0YYWUAg" title="Link Title"><img src="https://img.youtube.com/vi/zfnVXyM21LI/0.jpg"/></a>
 
 ## Objective
 To create a production quality web application deployment pipeline. This pipeline automatically
