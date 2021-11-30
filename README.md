@@ -163,6 +163,12 @@ If you were going to use this in production, you would probably want to change s
     $ pipenv shell
     $ python application.py
     ```
+The running app looks like this, with an input field to input data to the "Data" table, and a numeric imput field to
+retrieve that number of rows from the "Data" table. The sreen caps are from an AWS instance, if you run locally you will
+just have the local IP in the address bar.
+
+![app_main](./images/app_main.png)
+![app_result](./images/app_result.png)
 
 ## How To Run the app locally, but the db on AWS
 Complete the same steps as Locally above, except make sure your .env is filled out for AWS development. Once you run the application, it will
