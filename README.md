@@ -16,7 +16,7 @@ each tool.
 
 ## Benefits
 CI/CD eliminates change management pain and human error. With a process like this, code can be automatically tested and
-deployed. 
+deployed.
 
 ## Architecture
 ![architecture](./images/architecture.png)
