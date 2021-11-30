@@ -217,7 +217,7 @@ Note that you can start the pipeline by clicking Release Change from the Pipelin
 just set up manually with the placeholders. Since this step is fully manual, we don't need it.
  - There is an additional .platform/hooks/postdeploy/db_init.sh file. This hook will run once the application finishes
 deploying. It will run the first time and create the database, but it will contain no tables. This hook will run the
-```flask db upgrade``` step after the app is deployed. I left it as an platform post deploy hook (which requires an
+```flask db upgrade``` step after the app is deployed. I left it as a platform post deploy hook (which requires an
 app restart after it runs), rather than a config post deploy hook (which would require no restart) to be sure of the timing.
 Elastic Beanstalk likes to say the app is ready and deployed while Python is still creating the database.
 
