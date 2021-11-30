@@ -73,12 +73,16 @@ correctly import it.
    - During the create, it creates the environment variables in the environment from GitHub stored secrets.
 4. Once the database is created, the application is ready to use via the Elastic Beanstalk endpoint.
 
+![GA_flow](./images/GA_flow.png)
+
 #### AWS CodePipeline Pipeline Overview
 1. Create the application and environment in Elastic Beanstalk. Also define environment variables.
 2. Commit to the master-aws branch of a GitHub repository (pull request ideally).
 3. CopePipline will deploy the application, in which Python will create the database if it doesn't exist.
 4. The postdeploy application hook will then migrate any changes and restart the app.
 5. The application is now ready to use via the Elastic Beanstalk endpoint.
+
+![CP_flow](./images/CP_flow.png)
 
 ## Database Considerations
 Elastic Beanstalk does have the [option](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.db.html) 
