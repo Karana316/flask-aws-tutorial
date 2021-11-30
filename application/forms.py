@@ -5,7 +5,6 @@ from wtforms.validators import DataRequired, Length, NumberRange
 
 class EnterDBInfo(FlaskForm):
     dbNotes = TextAreaField(label='Items to add to DB', validators=[DataRequired(), Length(min=0, max=128, message=u'Enter 128 characters or less')])
-    dbGreeting = TextAreaField(label='Greeting to add to DB', validators=[DataRequired(), Length(min=0, max=128, message=u'Enter 128 characters or less')])
     submit = SubmitField('Submit')
 
 
