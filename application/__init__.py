@@ -12,6 +12,11 @@ bootstrap = Bootstrap(application)
 db.init_app(application)
 migrate.init_app(application, db)
 
+# comment out the migrate.init_app line above and uncomment the two lines below if you don't want to test
+# using flask_migrate. The create_all below will create tables that don't exist (no drops, no changes).
+# with application.app_context():
+#    db.create_all()
+
 # this has to be relative or it overwrites the Flask application object/variable with the module itself
 # it also has to be last because the app has to be created before the decorator in views.py can register the views.
 from . import views

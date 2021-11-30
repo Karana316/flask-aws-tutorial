@@ -1,17 +1,17 @@
 # Flask CI/CD on Elastic Beanstalk
 This is a CI/CD deployment of a Flask application in AWS using RDS PostgreSQL as the database
 
-## Technologies
+### Technologies
 Python 3.8, Flask, AWS RDS - PostgreSQL, GitHub, GitHub Actions, AWS Code Pipeline, AWS
 Elastic Beanstalk
 
-## Demo Videos
+### Demo Videos
 
 ## Objective
 To create a production quality web application deployment pipeline. This pipeline automatically
 deploys a simple Flask application to AWS upon commit to the master branch on GitHub.
 
-In addition, I’d compared GitHub Actions and AWS Code Pipeline by designing the pipeline with
+In addition, I’ve compared GitHub Actions and AWS Code Pipeline by designing the pipeline with
 each tool.
 
 ## Benefits
@@ -22,7 +22,7 @@ deployed.
 ![architecture](./images/architecture.png)
 
 ## About Elastic Beanstalk
-According to the [documentation](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-python-flask.html),
+Elastic Beanstalk is an application deployment service. According to the [documentation](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-python-flask.html),
 Elastic Beanstalk will create the following objects:
 
  - EC2 instance – An Amazon Elastic Compute Cloud (Amazon EC2) virtual machine configured to run web apps on the platform that you choose.
@@ -46,7 +46,7 @@ the following structure/naming.
 ├── Pipfile.lock
 └── application.py
 ```
-Along with this structure, the application variable itself should be called application. To quote the documentation:
+Along with this structure, the application variable itself should be called "application". To quote the documentation:
 
 "Using application.py as the filename and providing a callable application object (the Flask object, in this case) allows 
 EB to easily find your application's code. "
@@ -59,19 +59,26 @@ find/import the application to run. Many examples use just one application.py fi
 However, no real world application would be one file, so I wanted to use a package structure, and that complicated 
 everything. I am still a bit confused what exactly EB runs when it loads the application. It doesn't just run  `python 
 application.py`. It requires that, but somewhere, gunicorn (the WSGI web server) also imports application using a call
-similar to application:application, which confuses things when it has a both a module and packaged called application in the
+similar to application:application, which confuses things when it has a both a module and package called application in the
 structure. You would think an import would reference the package, but clearly this process works when only one script exists.
 In any case, if you have a simple one-script app (no package), you can set the WSGIPath to "application.py", 
 but if you have a package it has to be set to just "application". Somehow that magic lets it both run and gunicorn to 
 correctly import it. 
 
 ## Pipeline Overview
-GitHub Actions Pipeline Overview
-1. Commit to the master branch of a GitHub repository (pull request ideally)
+#### GitHub Actions Pipeline Overview
+1. Commit to the master branch of a GitHub repository (pull request ideally).
 2. GitHub actions will then create the database or migrate and changes. 
 3. GitHub actions will then deploy the repository to Elastic Beanstalk. This creates the server environment.
-   - During the create, it creates the environment variables in the environment.
+   - During the create, it creates the environment variables in the environment from GitHub stored secrets.
 4. Once the database is created, the application is ready to use via the Elastic Beanstalk endpoint.
+
+#### AWS CodePipeline Pipeline Overview
+1. Create the application and environment in Elastic Beanstalk. Also define environment variables.
+2. Commit to the master-aws branch of a GitHub repository (pull request ideally).
+3. CopePipline will deploy the application, in which Python will create the database if it doesn't exist.
+4. The postdeploy application hook will then migrate any changes and restart the app.
+5. The application is now ready to use via the Elastic Beanstalk endpoint.
 
 ## Database Considerations
 Elastic Beanstalk does have the [option](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.db.html) 
@@ -82,7 +89,9 @@ this path, but looking back I'm not sure there is a significant difference betwe
 using options in teh aws:rds:instance namespace. Using Python you have the full control of the rds client api, and I
 don't believe all of those are available in the namespace. For example, in Python I was able to specify a security group, 
 which ended up being a nice feature, to be able to have a static (not-auto-created) group. However, using the config
-the groups might all create correctly if you have no need to have them static (not destroyed when you delete the EB env).
+the groups might all create correctly if you have no need to have them static (not destroyed when you delete the EB env). 
+I noticed the EB integrated RDS does also have the option to persist/decouple the database after app deletion, which is 
+a nice option to have and puts it more on par with what I did in Python.
 
 I chose PostgreSQL just because it is a nice option. 
 
@@ -91,6 +100,8 @@ The configs will cleanly allow you to change between local, dev, test, and prod 
 
 Most configs are included in the .env file. I've included a env_template that you would just need to fill out and rename to .env.
 - You always need an APP_SECRET for Flask encryption.
+- You always need FLASK_APP set to the name of your Flask application ("application" in this case) for Flask-Migrate to
+  work correctly.
 - You always need FLASK_APP set to application for Flask-Migrate to correctly find the app.
 - If you want to develop locally, you would need PostgreSQL installed, set LOCAL_DEVELOPMENT=True and include LOCAL_USER
 and LOCAL_PW.
@@ -106,7 +117,7 @@ Elastic Beanstalk knows what env vars to expect based on the .ebextensions > env
 environment variables that might change but are not actually secret. Technically you don't need to have the placeholders
 here since the main.yml will create them upon deployment, but I kept them all for consistency. If you create a new env var
 that isn't sensitive, you can only add it just in environment.config. If you add a new sensitive secret, you could add
-it only within GitHub and within the main.yml. You do want to add secrets to your environment.config, because this file
+it only within GitHub and within the main.yml. You do NOT want to add secrets to your environment.config, because this file
 is committed to the repo.
 
 If you were going to use this in production, you would probably want to change some of the create_db options in database.py.
@@ -114,15 +125,15 @@ If you were going to use this in production, you would probably want to change s
 ## How To Run Locally
 
 1. Clone, or fork and clone this repo.
-```commandline
-git clone https://github.com/Karana316/flask-aws-tutorial
-```
+    ```commandline
+    git clone https://github.com/Karana316/flask-aws-tutorial
+    ```
 
 2. Configure your environment (commands run from flask_aws_tutorial folder)
    - I suggest using pipenv. You could use venv and install the requirements.txt just the same.
-```
-$ pipenv install
-```
+    ```
+    $ pipenv install
+    ```
    - [Install PostgreSQL](https://www.postgresqltutorial.com/install-postgresql-linux/) according to your OS and set up 
      a user and password (or use the default of your system user/pw). Create a database named flask_db (or change the 
      connection string in config.py).
@@ -134,24 +145,27 @@ $ pipenv install
 
 3. Update the database  
    - When initially creating the repo, I ran 
-```commandline
-$ flask db init
-$ flask db migrate -m "Initial migration."
-```
-These create the migrations folder and an initial "create table" migration. Since these already exist, and you already 
-created the database locally, you just need to run this to run the inital migration to create the tables:
-```commandline
-$ flask db upgrade
-```
+    ```commandline
+    $ flask db init
+    $ flask db migrate -m "Initial migration."
+    ```
+    These created the migrations folder and an initial "create table" migration. Since these already exist, and you already 
+    created the database locally, you only need to run the upgrade command below to run the inital migration to create the tables.
+    ```commandline
+    $ flask db upgrade
+    ```
+   - Note: if you don't want to use Flask-Migrate for testing, change the few lines in __init__.py according to the
+    comments there. If you do this, you won't need the `flask db upgrade` step after the db creates but before the app
+    will run, Python will take care of it all.
 
 4. Run the application. View in your browser at http://127.0.0.1:5000.
-```commandline
-$ pipenv shell
-$ python application.py
-```
+    ```commandline
+    $ pipenv shell
+    $ python application.py
+    ```
 
 ## How To Run the app locally, but the db on AWS
-Same steps as Locally, except make sure your .env is filled out for AWS development. Once you run the application, it will
+Complete the same steps as Locally above, except make sure your .env is filled out for AWS development. Once you run the application, it will
 take 5 minutes or so for the db to create in RDS.
 
 - LOCAL_DEVELOPMENT=False
@@ -168,6 +182,15 @@ underscores I believe.
 - AWS_DB_SECURITY_GROUP_ID: Create a security group, let's call it flask-aws-db-sg, in EC2 with an inbound rule for 
   PostgreSQL (port 5432) to accept traffic from your IP (outbound can be left to all traffic allowed). Set this variable 
   to the Security Group ID of the group.
+ 
+There is only one step to change/insert. I'll call it step 2.5, to be run between step 2 and 3. This is because the database
+must exist before you can run step 3, which creates the tables.
+
+2.5. Run the application as in step 5 (and stop it once it is fully running with the db created), or just run the following line to kick of the database create, so that it exists
+   for the table creation in step 4.
+   ```commandline
+    python -c "from application.database import AWSPostgreSQL; AWSPostgreSQL()"
+   ```
 
 ## How To Run on AWS via GithubActions
 1. Fork this repo
@@ -210,7 +233,7 @@ CodePipeline default for the output artifact format. Click Next.
 7. For Deploy, choose AWS Elastic Beanstalk. Choose the Application name and Environment name you created in Elastic Beanstalk. Click Next.
 8. Review and create pipeline.
 
-Note that you can start the pipeline by clicking Release Change from the Pipelines or flask-aws pipeline screens. 
+Note that for testing, you can start the pipeline by clicking Release Change from the Pipelines or flask-aws pipeline screens. 
 
 ### File Differences on master-aws branch 
  - There is no environment.config. This is because this file would overwrite the variables we
@@ -221,18 +244,23 @@ deploying. When the application first deploys, it will create the database, but 
 app restart after it runs), rather than a config post deploy hook (which would require no restart) to be sure of the timing,
 and because it wasn't running correctly as a confighook. Ideally in the end it would run without having to restart the app.
 
+There are many options for hooks and application extensions. I found [this blog](https://github.com/equivalent/scrapbook2/blob/master/archive/blogs/2016-08-22-aws-elasticbeanstalk-hooks.md)
+and [this document](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-linux-extend.html) very helpful. And
+the full list of namespace config options for the .ebextenstions files can be found [here](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html).
+
 ## GitHubActions or AWS CodePipeline?
 I have a feeling it would be possible to better automate the environment setup within CodePipeline. I'm not sure where
 you would store you env file, maybe S3? Or maybe you could just automate creating it in the environment from a local copy.
 I am sure you could automate creating the environment too, either from local, or during the build step somehow. I didn't
-try CodeBuild, so I'm not sure how customizable it is. All this to say, if you don't know and use GitHub and you are already
-in the AWS world, CodePipeline might be a good option for you.
+try CodeBuild, so I'm not sure how customizable it is. All this to say, if you don't know and use GitHub, and you are already
+in the AWS world, CodePipeline might be a good option for you. I would say the Console/GUI based pipeline is simpler, but in 
+reality it just means you will do yml and sh customization tasks in config files.
 
-However, in general I feel like GitHub Actions wins this comparison by a landslide. You have all the options you have 
-within CodePipeline plus more. It is more customizable, and the config nicely lives in your repo. Plus, you can centralize
-your environments. 
-
-In addition, GitHub Actions has great error logs for debugging. The CodePipeline UI felt clunky after the ease of GitHub Actions.
+Overall GitHub Actions wins this comparison by a landslide. You have all the options you have within CodePipeline plus 
+more. It is more customizable because you have low-level access to create steps on the runner itself, not just within
+the Elastic Beanstalk deployment. Plus the config nicely lives in your repo, and you can centralize your environments.
+In addition, GitHub Actions has great error logs for debugging. The CodePipeline UI felt clunky after the ease of 
+GitHub Actions.
 
 ## Continued Development
 
@@ -245,7 +273,9 @@ As you make changes that affect the database, you will need to create new migrat
 $ flask db migrate -m "another migration." 
 ```
 Review the script it creats within the migrations > versions folder. Add/commit new migrations to the repo, and the pipeline 
-will migrate the changes. [Documentation](https://flask-migrate.readthedocs.io/en/latest/index.html) for Flask-Migrate.
+will migrate the changes. [Documentation](https://flask-migrate.readthedocs.io/en/latest/index.html) for Flask-Migrate. Note
+that Flask-Migrate tracks migrations in a table of its own, so it will not run the same migration twice (when another container
+instance spins up for example).
 
 ### Package Changes
 Note if you make changes in pipenv, re-lock the requirements.txt or remove it. Elastic Beanstalk on Amazon Linux 2
@@ -259,13 +289,14 @@ $ pipenv lock -r > requirements.txt
 ## Future Improvements
 There are two additional steps that would be necessary for a production application.
 
-### The build step with testing
+### The Build step with testing
 I left this step in GitHub actions, but the testing piece is commented out, so it isn't doing much
 other than testing the installation. Generally you would run unit tests in this step, but that is difficult to do with my current
 setup. You don't want to test with the real database, so you would probably want to write tests against a local (to the
-test runner) postgreSQL install or an in-memory SQLite db. This was just out of scope for this project.
+test runner) PostgreSQL install or an in-memory SQLite db. This was just out of scope for this project. For AWS you would
+use CodeBuild for this piece, which was also out of scope.
 
-### Refine AWS security
+### Refine AWS security if using GitHub
 I chose to use a username and password for my database creation. This might be better handled use the IAM role option. 
 Since I have github actions create the database first if it doesn't exist, I had to leave port 5432 open on the database
 role. Maybe if you switched to IAM security you could create a more specific policy/role. In any case, the security needs
