@@ -210,10 +210,16 @@ CodePipeline default for the output artifact format. Click Next.
 7. For Deploy, choose AWS Elastic Beanstalk. Choose the Application name and Environment name you created in Elastic Beanstalk. Click Next.
 8. Review and create pipeline.
 
-Now 
-...
+Note that you can start the pipeline by clicking Release Change from the Pipelines or flask-aws pipline screens. 
 
-In Elastic Beanstalk, go to the flask-aws-env environment and choose config on the le
+### File Differences on master-aws branch 
+ - There is no environment.config. This is because this file would overwrite the variables we
+just set up manually with the placeholders. Since this step is fully manual, we don't need it.
+ - There is an additional .platform/hooks/postdeploy/db_init.sh file. This hook will run once the application finishes
+deploying. It will run the first time and create the database, but it will contain no tables. This hook will run the
+```flask db upgrade``` step after the app is deployed. I left it as an platform post deploy hook (which requires an
+app restart after it runs), rather than a config post deploy hook (which would require no restart) to be sure of the timing.
+Elastic Beanstalk likes to say the app is ready and deployed while Python is still creating the database.
 
 
 ## Continued Development
